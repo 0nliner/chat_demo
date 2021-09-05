@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -132,10 +132,39 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
 CORS_ALLOW_ALL_ORIGINS = True
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    # 'DEFAULT_PAGINATION_CLASS': 'api.paginators.CustomPageNumberPagination',
+    # 'PAGE_SIZE': 10,
+    #'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+}
+
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT', "Bearer",),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=10),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=50),
+}
+
+DJOSER = {
+    # 'PASSWORD_RESET_CONFIRM_URL': 'password/{uid}/{token}',
+    # 'USERNAME_RESET_CONFIRM_URL': '{uid}/{token}',
+    # 'ACTIVATION_URL': 'activate/{uid}/{token}',
+    # 'SEND_ACTIVATION_EMAIL': True,
+    # 'SEND_CONFIRMATION_EMAIL': True,
+    # 'USER_CREATE_PASSWORD_RETYPE': True,
+    # 'SET_PASSWORD_RETYPE': True,
+    # 'PASSWORD_RESET_CONFIRM_RETYPE': True,
+    # 'EMAIL': {
+    #     'activation': 'api.email.ActivationEmail',
+    #     'password_reset': 'api.email.PasswordResetEmail',
+    # }
+}
+
+#  CHANNELS
 ASGI_APPLICATION = 'chat_example.asgi.application'
 CHANNEL_LAYERS = {
     'default': {

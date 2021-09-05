@@ -4,14 +4,11 @@ from django.contrib.auth.models import User
 
 class Dialog(models.Model):
 
+    users = models.ManyToManyField(User, related_name="dialogs")
+
     class Meta:
         verbose_name = "диалоги"
         verbose_name_plural = "диалог"
-
-    def __str__(self):
-        if self.messages:
-            unique_users_names = (message.sender.name for message in self.messages)
-            return "".join(f"{name}, " for name in unique_users_names)[:-2]
 
 
 class Message(models.Model):
