@@ -36,7 +36,6 @@ class DialogViewSet(GenericViewSet,
     def add_user(self, request):
         serializer = UserCreationSerializer(data=request.data)
         serializer.is_valid()
-        # print(serializer.data[])
 
         user = get_object_or_404(User, id=serializer.data["user_id"])
         dialog = get_object_or_404(Dialog, id=serializer.data["dialog_id"])
@@ -46,4 +45,16 @@ class DialogViewSet(GenericViewSet,
 
         return Response(status=status.HTTP_201_CREATED)
 
+    @action(methods=["GET"], detail=False, url_path=r"get_messages/(?P<pk>[^/.]+)")
+    def get_messages(self, request, pk):
+        # TODO: отрефакторить
+        try:
+            messages = list(get_object_or_404(Dialog, id=pk).messages.all()).reverse()[:1000]
+        except TypeError:
+            messages = []
+
+        serialized_messages = MessageSerializer(data=messages, many=True)
+        serialized_messages.is_valid()
+
+        return Response(data=serialized_messages.data, status=status.HTTP_200_OK)
 
