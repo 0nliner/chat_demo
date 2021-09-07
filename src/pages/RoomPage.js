@@ -2,6 +2,8 @@ import react from "react";
 import {Box, Button, Container, Fab, Grid, makeStyles, TextareaAutosize, Typography} from "@material-ui/core";
 import SendIcon from '@material-ui/icons/Send';
 import {useParams} from "react-router-dom/cjs/react-router-dom";
+import useWebSocket, { ReadyState } from 'react-use-websocket';
+
 
 let useDialogStyles = makeStyles(theme => ({
     msg: {
@@ -16,18 +18,23 @@ let useDialogStyles = makeStyles(theme => ({
 }));
 
 
-function MyMsg ({datetime, message}) {
+function MyMsg ({datetime, text, from, sender_id}) {
     let classes = useDialogStyles();
 
     return (
         <Grid container justify={"flex-end"} style={{position: "relative", width: "100%", right: -15}}>
             <Box className={classes.msg} style={{right: 10}}>
+                <Typography align="left" style={{marginBottom: 8}} variant="h6">
+                    {from}
+                </Typography>
+
+
                 <Typography align="left">
-                    {message}
+                    {text}
                 </Typography>
 
                 <Typography style={{fontSize: "0.7em", marginTop: 15}} align="left">
-                    12:34
+                    {datetime}
                 </Typography>
             </Box>
         </Grid>
@@ -82,6 +89,7 @@ export function RoomPage (props) {
         + '/ws/chat/'
         + roomName
         + '/'
+        + `?token=${localStorage.getItem("access_token")}`
     );
 
     chatSocket.onmessage = function(e) {
@@ -94,8 +102,6 @@ export function RoomPage (props) {
         console.error('Chat socket closed unexpectedly');
     };
 
-
-    //
 
     function SendMessage (props) {
 
