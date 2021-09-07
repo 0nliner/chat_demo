@@ -1,8 +1,9 @@
-import react from "react";
+import react, {useCallback} from "react";
 import {Box, Button, Container, Fab, Grid, makeStyles, TextareaAutosize, Typography} from "@material-ui/core";
 import SendIcon from '@material-ui/icons/Send';
 import {useParams} from "react-router-dom/cjs/react-router-dom";
 import useWebSocket, { ReadyState } from 'react-use-websocket';
+import {authorizedFetch} from "../fetchFabric";
 
 
 let useDialogStyles = makeStyles(theme => ({
@@ -18,14 +19,14 @@ let useDialogStyles = makeStyles(theme => ({
 }));
 
 
-function MyMsg ({datetime, text, from, sender_id}) {
+function MyMsg ({datetime, text, from_user, sender_id}) {
     let classes = useDialogStyles();
 
     return (
         <Grid container justify={"flex-end"} style={{position: "relative", width: "100%", right: -15}}>
             <Box className={classes.msg} style={{right: 10}}>
                 <Typography align="left" style={{marginBottom: 8}} variant="h6">
-                    {from}
+                    {from_user}
                 </Typography>
 
 
@@ -41,7 +42,7 @@ function MyMsg ({datetime, text, from, sender_id}) {
     );
 }
 
-function OtherMsg ({datetime, message}) {
+function OtherMsg ({datetime, text, from_user, sender_id}) {
     let classes = useDialogStyles();
 
     return (
@@ -54,12 +55,16 @@ function OtherMsg ({datetime, message}) {
               }}>
 
             <Box className={classes.msg} style={{left: 10, backgroundColor: "#16283a"}}>
+                <Typography align="left" style={{marginBottom: 8}} variant="h6">
+                    {from_user}
+                </Typography>
+
                 <Typography align="left">
-                    {message}
+                    {text}
                 </Typography>
 
                 <Typography style={{fontSize: "0.7em", marginTop: 15}} align="right">
-                    12:34
+                    {datetime}
                 </Typography>
             </Box>
         </Grid>
@@ -79,36 +84,56 @@ export function RoomPage (props) {
     let classes = useDialogStyles();
     let {id} = useParams();
     let [messages, setMessages] = react.useState([]);
-
     const roomName = id;
 
+
+    react.useEffect(async () => {
+            await authorizedFetch({url:`http://127.0.0.1:8000/api/chat/dialogs/get_messages/${roomName}/`, data:{}
+        }).then(
+                async (response) => {
+                    let data = await response.json();
+                    console.log(data);
+                    // TODO: хендлить ошибки
+                    setMessages(data);
+                }
+            )
+        }, []
+    )
+
     // window.location.host
-    const chatSocket = new WebSocket(
+    const {
+        sendMessage,
+        lastMessage,
+        readyState,
+    } = useWebSocket(
         'ws://'
         + "localhost:8000"
         + '/ws/chat/'
         + roomName
         + '/'
-        + `?token=${localStorage.getItem("access_token")}`
+        + `?token=${localStorage.getItem("access_token") ? localStorage.getItem("access_token") : window.location = "/login"}`,
+        {
+            onOpen: () => {
+                console.log("connected")
+            },
+            onClose: () => {
+                console.error('Chat socket closed unexpectedly');
+            },
+            shouldReconnect: (closeEvent) => true,
+            onMessage: (event) => {
+                const data = JSON.parse(event.data);
+                // todo: добавление нового сообщение в чат
+                setMessages([...messages, data]);
+            }
+        }
     );
-
-    chatSocket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-        // todo: добавление нового сообщение в чат
-        setMessages([...messages, data]);
-    };
-
-    chatSocket.onclose = function(e) {
-        console.error('Chat socket closed unexpectedly');
-    };
-
 
     function SendMessage (props) {
 
         const textarea_ref = react.useRef();
 
-        function sendMessage () {
-            chatSocket.send(JSON.stringify({
+        function sendMessageF () {
+            sendMessage(JSON.stringify({
                 'message': textarea_ref.current.value
             }));
             textarea_ref.current.value = "";
@@ -141,7 +166,7 @@ export function RoomPage (props) {
                     }} ref={textarea_ref}/>
 
                 <Fab size="small" style={{position: "absolute", right: 5, bottom: 0, backgroundColor: "white", boxShadow: "none"}}
-                     onClick={sendMessage}
+                     onClick={sendMessageF}
                 >
                     <SendIcon/>
                 </Fab>
@@ -156,11 +181,19 @@ export function RoomPage (props) {
     return (
         <Box>
             {/*<Header/>*/}
-            <Container>
+            <Container style={{
+                bottom: 40,
+                top: 40,
+                height: "calc(100vh - 100px)",
+                position: "absolute",
+                overflowY: "scroll"
+            }}>
                 <Grid container
                       direction={"column"}>
 
-                    {messages.map(message => <MyMsg {...message}/>)}
+                    {messages.map(message => message.from_user === localStorage.getItem("username")? <MyMsg {...message}/> :
+                        <OtherMsg {...message}/>
+                    )}
 
                 </Grid>
             </Container>

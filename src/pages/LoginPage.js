@@ -50,6 +50,9 @@ export function LoginPage (props) {
                 })
             }).then(async (response) => {
                 let data = await response.json();
+
+                localStorage.setItem("username", email.current.value);
+
                 email.current.value = "";
                 password.current.value = "";
 
