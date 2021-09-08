@@ -100,6 +100,14 @@ export function RoomPage (props) {
         }, []
     )
 
+    console.log('ws://'
+        + "localhost:8000"
+        + '/ws/chat/'
+        + roomName
+        + '/'
+        + `?token=${localStorage.getItem("access_token") ? localStorage.getItem("access_token") : window.location = "/login"}`);
+
+
     // window.location.host
     const {
         sendMessage,
