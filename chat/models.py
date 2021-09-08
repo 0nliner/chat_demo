@@ -26,5 +26,7 @@ class Message(models.Model):
         verbose_name_plural = "сообщение"
 
     def __str__(self):
-        return f"{self.sender.name}\t{self.datetime}"
-
+        try:
+            return f"{self.sender.username}\t{self.datetime}"
+        except Exception:
+            return f"message {self.id}"

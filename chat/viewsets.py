@@ -49,7 +49,7 @@ class DialogViewSet(GenericViewSet,
     def get_messages(self, request, pk):
         # TODO: отрефакторить
         try:
-            messages = list(get_object_or_404(Dialog, id=pk).messages.all()).reverse()[:1000]
+            messages = get_object_or_404(Dialog, id=pk).messages.order_by("datetime")[:1000]
         except TypeError:
             messages = []
 

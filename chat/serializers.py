@@ -6,11 +6,15 @@ class MessageSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(read_only=True)
     dialog = serializers.PrimaryKeyRelatedField(read_only=True)
     sender = serializers.PrimaryKeyRelatedField(read_only=True)
-    datetime = serializers.DateField(read_only=True)
+    datetime = serializers.DateTimeField(read_only=True)
+    from_user = serializers.SerializerMethodField(source="get_from_user")
 
     class Meta:
         exclude = []
         model = Message
+
+    def get_from_user(self, obj):
+        return obj.sender.username
 
 
 class DialogSerializer(serializers.ModelSerializer):
@@ -21,6 +25,14 @@ class DialogSerializer(serializers.ModelSerializer):
     class Meta:
         exclude = []
         model = Dialog
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        # TODO: добавить исключения
+        # exclude = ["all_messages", "dialogs",]
+        exclude = []
+        model = User
 
 
 class UserCreationSerializer(serializers.Serializer):

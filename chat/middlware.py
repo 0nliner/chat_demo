@@ -1,4 +1,4 @@
-import jwt, re
+import jwt
 import traceback
 
 from asgiref.sync import sync_to_async
@@ -45,15 +45,13 @@ class TokenAuthMiddleware:
                 except (InvalidSignatureError, KeyError, ExpiredSignatureError, DecodeError):
                     traceback.print_exc()
                     pass
-                except Exception as e:  # NoQA
+                except Exception as e:
                     traceback.print_exc()
 
             return await self.inner(scope, receive, send)
-            # return self.inner(scope)
 
         except:
             scope['user'] = AnonymousUser()
-            # return self.inner(scope)
             return await self.inner(scope, receive, send)
 
 
