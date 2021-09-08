@@ -5,11 +5,9 @@ import {
     Container,
     Fab,
     Grid,
-    List,
     ListItem,
-    ListItemSecondaryAction,
     ListItemText,
-    Modal,
+    Modal, Paper,
     TextField
 } from "@material-ui/core";
 import {Typography} from "@material-ui/core";
@@ -21,13 +19,17 @@ import {Autocomplete} from "@material-ui/lab";
 
 function Room ({id}) {
     return (
-        <Grid item style={{backgroundColor: "rgb(216 216 216)", height: 70, marginTop: 10, borderRadius: 5, padding: 4}}
-            onClick={(e)=>{window.location = `/room/${id}`}}
-        >
-            <Typography variant={"h5"} align={"left"}>
-                комната №{id}
-            </Typography>
-        </Grid>
+        <Paper style={{margin: "10px 0", }}>
+            {/*//backgroundColor: "rgb(216 216 216)",*/}
+            <Grid item style={{ height: 70, borderRadius: 5, padding: 4}}
+                onClick={(e)=>{window.location = `/room/${id}`}}
+            >
+                <Typography variant={"h5"} align={"left"}>
+                    комната №{id}
+                </Typography>
+            </Grid>
+        </Paper>
+
     );
 }
 
@@ -37,7 +39,6 @@ export function RoomsPage () {
     const [candidates, setCandidates] = react.useState([]);
     
     // const [isFocused, setFocused] = react.useState(false);
-    const listRef = react.useRef();
     const inputRef = react.useRef();
     const [inputValue, setInputValue] = react.useState('');
     const [usersToAdd, setUsersToAdd] = react.useState([]);
@@ -81,18 +82,18 @@ export function RoomsPage () {
     const [showModal, setShowModal] = react.useState();
 
     const modal_body = (
-        <Container xs={"sm"} style={{height: "300px", backgroundColor: "white", position: "relative"}}>
+        <Container maxWidth={"sm"} style={{height: "300px", backgroundColor: "white", position: "relative"}}>
             <Typography variant={"h6"} align={"center"}>Создать чат</Typography>
             <Grid container alignItems={"center"} justify={"center"} direction={"column"}>
 
                 <Autocomplete ref={inputRef}
                               options={candidates}
                               style={{ width: 300, marginBottom: 20 }}
-                              getOptionLabel={(candidate) => candidate.username}
+                              getOptionLabel={(candidate) => candidate && candidate.username? candidate.username : ""}
                               inputValue={inputValue}
                               onInputChange={(e)=>
                               {
-                                  if (e) {
+                                  if (e && e.type === "change") {
                                       setInputValue(e.target.value);
                                       sendMessage(
                                           JSON.stringify({
@@ -109,18 +110,16 @@ export function RoomsPage () {
                 />
 
                 {/* выделенные пользователи */}
-                <Grid container direction={"row"} justify={"left"} xs={"sm"}>
+                <Grid container direction={"row"} justify={"left"}>
                     {/* TODO: присутствуют баги, надо пофиксить */}
                     {usersToAdd.map(user => <Chip key={`user_${user.id}`}
                                                   label={user.username}
                                                   style={{margin: 5}}
                                                   onDelete={(e)=> {
                                                          let index = usersToAdd.findIndex(member => member.id === user.id);
-                                                         console.log(index);
                                                          let copy = [...usersToAdd];
                                                          copy.splice(index);
                                                          setUsersToAdd(copy);
-                                                         console.log("users to add", usersToAdd);
                                                      }}
                     />)}
                 </Grid>
@@ -141,41 +140,20 @@ export function RoomsPage () {
                 >
                     создать чат
                 </Button>
-
             </Grid>
-
-
         </Container>
     );
 
     function UserItem ({id, username}) {
         return (
             <ListItem
-                      style={{
-                          pointerEvents: "all",
-                      }}
                       onClick={(e) => {
                           setUsersToAdd([...usersToAdd, {id, username}]);
-                          console.log("hello")
+                          setInputValue("");
             }}>
-                {/*<ListItemAvatar>*/}
-                {/*    <Avatar*/}
-                {/*        alt={`Avatar n°${value + 1}`}*/}
-                {/*        src={`/static/images/avatar/${value + 1}.jpg`}*/}
-                {/*    />*/}
-                {/*</ListItemAvatar>*/}
-                <ListItemText>
+                <Typography>
                     {username}
-                </ListItemText>
-                {/*<ListItemSecondaryAction>*/}
-                {/*    delete*/}
-                    {/*<Checkbox*/}
-                    {/*    edge="end"*/}
-                    {/*    onChange={handleToggle(value)}*/}
-                    {/*    checked={checked.indexOf(value) !== -1}*/}
-                    {/*    inputProps={{ 'aria-labelledby': labelId }}*/}
-                    {/*/>*/}
-                {/*</ListItemSecondaryAction>*/}
+                </Typography>
             </ListItem>
         );
     }
@@ -190,7 +168,7 @@ export function RoomsPage () {
                     +
                 </Typography>
             </Fab>
-            <Container xs={"sm"}>
+            <Container>
                 <Grid container justify={"center"} direction={"column"}>
                     {rooms.map(room_data => <Room key={room_data.id} {...room_data}/>)}
                 </Grid>
